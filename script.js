@@ -15,24 +15,60 @@ const config = {
   // ======================
   // Questions and Buttons
   // ======================
-  questions: {
-    first: {
-      text: "Do you like me?",                         // First question
-      yesBtn: "Yes",                                   // Yes button text
-      noBtn: "No",                                     // No button text
-      secretAnswer: "I don't like you, I love you! ❤️" // Hidden message
+  questions: [
+    /*First question*/
+    {
+      text: "Ti piaccio?",
+      buttons: [
+        {
+          text: "Si",
+          type: "submit",
+        },
+        {
+          text: "No",
+          type: "submit",
+        }
+      ],
     },
-    second: {
+    /*Second question*/
+    {
+      text: "Quanto mi ami?",
+      buttons: [
+        {
+          text: "questo",
+          type: "range",
+        },
+        {
+          text: "prossima domanda >",
+          type: "submit",
+        }
+      ],
+      /*
       text: "How much do you love me?",                // Second question
       startText: "This much!",                         // Text before percentage
       nextBtn: "Next ❤️"                               // Next button text
+      */
     },
-    third: {
+    /*Third question*/
+    {
+      text: "Ti piaccio?",
+      buttons: [
+        {
+          text: "Si",
+          type: "submit",
+        },
+        {
+          text: "No",
+          type: "submit",
+        }
+      ],
+      /*
       text: "Will you be my Valentine...?",            // Final question
       yesBtn: "Yes!",                                  // Yes button text
       noBtn: "No"                                      // No button text
+      */
     }
-  },
+  ],
 
   // ======================
   // Love Meter Messages
@@ -73,17 +109,6 @@ const config = {
     heartExplosionSize: 1.5 // Final heart explosion size (1.2–2.0)
   },
 
-  // ======================
-  // Music Settings
-  // ======================
-  music: {
-    enabled: true,                         // Music feature is enabled
-    autoplay: true,                        // Try to autoplay
-    musicUrl: "YOUR_CLOUDINARY_URL_HERE",  // Music URL
-    startText: "🎵 Play Music",            // Start button text
-    stopText: "🔇 Stop Music",             // Stop button text
-    volume: 0.5                            // Volume (0.0 – 1.0)
-  }
 };
 
 
@@ -93,13 +118,72 @@ function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
-  // Set page title
-  document.title = config.pageTitle;
+function randomInt(min, max, integer = true) {
+  let number = Math.random() * (max - min) + min;
+  return integer ? Math.floor(number) : number;
+}
 
-  // Start falling emojis background
+
+document.addEventListener("DOMContentLoaded", () => { 
+  let currentQst = 0;
+  document.title = config.pageTitle;
+  
+  const form = document.getElementById("question-form");
+
+  renderQuestion(form, currentQst);
   initFallingEmojis();
+
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    currentQst++;
+
+    if (currentQst < config.questions.length) {
+      renderQuestion(form, currentQst);
+    } else {
+      form.innerHTML = "";
+      // fine
+    }
+  });
+
+      /* Add event listener for button clicks
+      button.addEventListener("click", async (e) => {
+        e.preventDefault();
+        // Handle button actions here (e.g., show next question, update love meter, etc.)
+        console.log(`Button clicked: ${btn.text}`);
+        
+        // For demonstration, let's just move to the next question on any button click
+        const nextIndex = index + 1;
+        if (nextIndex < config.questions.length) {
+          questionElement.textContent = config.questions[nextIndex].text;
+          form.innerHTML = "";
+          config.questions[nextIndex].buttons.forEach((nextBtn) => {
+            const nextButton = document.createElement("button");
+            nextButton.type = nextBtn.type === "submit" ? "submit" : "button";
+            nextButton.textContent = nextBtn.text;
+            nextButton.className = "btn";
+            form.appendChild(nextButton);
+            
+            // Add event listener for next buttons as well
+            nextButton.addEventListener("click", (e) => {
+              e.preventDefault();
+              console.log(`Button clicked: ${nextBtn.text}`);
+              // Handle next button actions here
+            });
+          });
+        } else {
+          // No more questions, show celebration or final message
+          questionElement.textContent = config.celebration.title;
+          form.innerHTML = `<p>${config.celebration.message}</p>`;
+          // Optionally, trigger a celebration animation here
+        }
+      });
+      */
 });
+
+
+
 
 
 function initFallingEmojis() {
@@ -107,31 +191,33 @@ function initFallingEmojis() {
 
   const emojis = (config && config.floatingEmojis && config.floatingEmojis.emojis);
 
-  const spawnRate = 250; // ms between spawns
-  const maxConcurrent = 50;
+  const spawnRate = 150; // ms between spawns
+  const maxConcurrent = 60;
   let active = 0;
 
   const styles = ["fall-center", "fall-left", "fall-right", "fall-spiral"];
 
   const spawn = () => {
     if (active > maxConcurrent) return;
+    
     active++;
+    // emoji
     const e = document.createElement("span");
     e.className = "falling-emoji";
-    e.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-    const size = Math.floor(Math.random() * 36) + 18; // 18-54px
+    e.textContent = emojis[randomInt(0, emojis.length - 1)];
+    const size = randomInt(15, 55);
     e.style.fontSize = size + "px";
-    e.style.left = Math.random() * 100 + "vw";
+    e.style.left = randomInt(0, 100) + "vw"; // offset
 
     // pick a random fall style and optional slow modifier
-    const chosen = styles[Math.floor(Math.random() * styles.length)];
+    const chosen = styles[randomInt(0, styles.length - 1)];
     e.classList.add(chosen);
-    if (Math.random() < 0.22) e.classList.add('slow');
+    if (randomInt(0, 5) > 4) e.classList.add('slow');
 
-    let durationNum = Math.random() * 6 + 6; // 6-12s
+    let durationNum = randomInt(6, 12, false); // 6-12s
     if (e.classList.contains('slow')) durationNum *= 1.5;
     e.style.animationDuration = durationNum.toFixed(2) + "s";
-    e.style.opacity = (Math.random() * 0.6 + 0.35).toFixed(2);
+    e.style.opacity = randomInt(0.35, 0.95, false).toFixed(2);
 
     container.appendChild(e);
 
@@ -147,4 +233,39 @@ function initFallingEmojis() {
 
   const intervalId = setInterval(spawn, spawnRate);
   container.dataset.emojiInterval = String(intervalId);
+}
+
+
+function renderQuestion(form, currentQst) {
+  const qst = config.questions[currentQst];
+
+  let qstElem = document.createElement("h3");
+  qstElem.id = "question";
+  qstElem.textContent = qst.text;
+
+  form.innerHTML = ""; // clear buttons
+
+  Array.from(form.children).forEach(child => {
+    if (child.id !== "question") child.remove();
+  });
+  form.appendChild(qstElem);
+
+
+  qst.buttons.forEach(btn => {
+      if (btn.type === "submit") {
+        const button = document.createElement("button");
+        button.type = "submit";
+        button.textContent = btn.text;
+        button.className = "btn";
+        form.appendChild(button);
+      } else {
+        const input = document.createElement("input");
+        input.type = btn.type;
+        input.value = btn.text;
+        form.appendChild(input);
+      }
+    
+    console.log(`Rendered button: ${btn.text} (type: ${btn.type})`);
+  });
+
 }

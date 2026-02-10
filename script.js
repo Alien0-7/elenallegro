@@ -139,6 +139,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    if (answers[currentQst] === "No") {
+      alert("C'è stato un problema nel salvataggio della risposta, Riprova!");
+      return;
+    } else if (Number(answers[currentQst]) <= 5000) {
+      alert("C'è stato un problema nel salvataggio della risposta, Riprova!");
+      return;
+    }
+
     currentQst++;
 
     if (currentQst < config.questions.length) {

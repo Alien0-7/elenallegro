@@ -3,7 +3,7 @@ const config = {
   // Basic Information
   // ======================
   valentineName: "Elena",                    // Your Valentine's name
-  pageTitle: "💘", // Browser tab title  &#8203;
+  pageTitle: "💘",                          // Browser tab title  
 
   // ======================
   // Floating Background Elements
@@ -19,6 +19,8 @@ const config = {
     /*First question*/
     {
       text: "Ti piaccio?",
+      textQuestionColor: "#e6081a",
+      textQuestionSize: "100px",
       buttons: [
         {
           text: "Si",
@@ -33,25 +35,28 @@ const config = {
     /*Second question*/
     {
       text: "Quanto mi ami?",
+      textQuestionColor: "#e6081a",
+      textQuestionSize: "90px",
       buttons: [
         {
           text: "questo",
           type: "range",
+          min: 0,
+          max: 10000,
+          step: 1,
         },
         {
-          text: "prossima domanda >",
+          text: "prossima domanda",
           type: "submit",
         }
       ],
-      /*
-      text: "How much do you love me?",                // Second question
-      startText: "This much!",                         // Text before percentage
-      nextBtn: "Next ❤️"                               // Next button text
-      */
+
     },
     /*Third question*/
     {
-      text: "Ti piaccio?",
+      text: "Vuoi essere il mio San Valentino?",
+      textQuestionColor: "#e6081a",
+      textQuestionSize: "80px",
       buttons: [
         {
           text: "Si",
@@ -62,53 +67,21 @@ const config = {
           type: "submit",
         }
       ],
-      /*
-      text: "Will you be my Valentine...?",            // Final question
-      yesBtn: "Yes!",                                  // Yes button text
-      noBtn: "No"                                      // No button text
-      */
     }
   ],
 
-  // ======================
-  // Love Meter Messages
-  // ======================
-  loveMessages: {
-    extreme: "WOOOOW You love me that much?? 🥰🚀💝", // > 5000%
-    high: "To infinity and beyond! 🚀💝",             // > 1000%
-    normal: "And beyond! 🥰"                          // > 100%
-  },
-
-  // ======================
-  // Final Celebration
-  // ======================
   celebration: {
-    title: "Yay! I'm the luckiest person...", // Celebration title
-    message: "Now come get your gift...",     // Celebration message
-    emojis:  ["🎁","🤗", "❤️", "💖", "💝", "💗", "💓", "💋", "💕", "😘", "😍" ,"🥰"]                  // Celebration emojis
+    emojis:  ["🎁","🤗", "❤️", "💖", "💝", "💗", "💓", "💋", "💕", "😘", "😍" ,"🥰"]
   },
 
-  // ======================
-  // Website Colors
-  // ======================
+
   colors: {
-    backgroundStart: "#ffafbd",   // Background gradient start
-    backgroundEnd: "#ffc3a0",     // Background gradient end
+    textCelebrationColor: "#be0010",
+    backgroundStart: "#ff96b8",   // Background gradient start
+    backgroundEnd: "#f8a1bc",     // Background gradient end
     buttonBackground: "#ff6b6b",  // Button color
     buttonHover: "#ff8787",       // Button hover color
-    textColor: "#ff4757"          // Text color
   },
-
-  // ======================
-  // Animation Settings
-  // ======================
-  animations: {
-    floatDuration: "15s",   // How long hearts float (10–20s)
-    floatDistance: "50px",  // Sideways movement (30–70px)
-    bounceSpeed: "0.5s",    // Bounce animation speed (0.3–0.7s)
-    heartExplosionSize: 1.5 // Final heart explosion size (1.2–2.0)
-  },
-
 };
 
 
@@ -123,19 +96,48 @@ function randomInt(min, max, integer = true) {
   return integer ? Math.floor(number) : number;
 }
 
+// pagina inattiva
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    document.title = "\u200B";
+  } else {
+    document.title = config.pageTitle;
+  }
+});
+
+const answers = [];
+
 
 document.addEventListener("DOMContentLoaded", () => { 
   let currentQst = 0;
-  document.title = config.pageTitle;
-  
   const form = document.getElementById("question-form");
 
+  // page title
+  document.title = config.pageTitle;
+
+  // color background
+  document.body.style.background = `linear-gradient(135deg, ${config.colors.backgroundStart}, ${config.colors.backgroundEnd})`;
+
   renderQuestion(form, currentQst);
-  initFallingEmojis();
+  initFallingEmojis(config.floatingEmojis.emojis);
 
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
+
+    const answer = confirm("Sicura della risposta?");
+    if (!answer) return;
+
+    // salva le risposte
+    const valueRange = form.querySelector("p[id='range-value']");
+    if (valueRange) {
+      answers[currentQst] = valueRange.textContent;
+    } else {
+      const clicked = document.activeElement;
+      if (clicked && clicked.tagName === "BUTTON") {
+        answers[currentQst] = clicked.textContent;
+      }
+    }
 
     currentQst++;
 
@@ -143,59 +145,83 @@ document.addEventListener("DOMContentLoaded", () => {
       renderQuestion(form, currentQst);
     } else {
       form.innerHTML = "";
-      // fine
+
+      const emojis = (config.celebration.emojis);
+      initFallingEmojis(emojis);
+
+      const title = document.createElement("h3");
+      title.textContent = "Complimenti! 🎉";
+      title.id = "question";
+      title.style.fontSize = "80px";
+      title.style.color = config.colors.textCelebrationColor;
+      title.style.textShadow = `
+        0 0 2px #fff,
+        0 0 4px #fff,
+        0 0 6px #fff
+      `;
+
+
+      const message = document.createElement("p");
+      message.style.fontSize = "22px";
+      message.style.fontWeight = "bold";
+      message.style.textShadow = `
+        0 0 2px #fff,
+        0 0 4px #fff,
+        0 0 6px #fff
+      `;
+
+      message.textContent = "Hai completato tutte le domande! Ora puoi mandare un'email per confermare le risposte date!";
+      message.style.color = config.colors.textCelebrationColor;
+      form.appendChild(title);
+      form.appendChild(message);
+
+      button = document.createElement("button");
+      button.textContent = "Invia email";
+      button.style.backgroundColor = config.colors.buttonBackground;
+      button.style.marginTop = "5%";
+      button.className = "btn";
+      button.type = "button";
+
+      button.addEventListener("click", (e) => {
+        const email = "eliamorari07@gmail.com";
+        const subject = encodeURIComponent("Conferma delle risposte al questionario di San Valentino");
+        const body = encodeURIComponent(
+          "Gentile Elia Morari,\n" +
+          "Le scrivo per confermare che ho completato il questionario dal sito in modo sincero e veritiero. ❤️\n" +
+          "Di seguito troverà le mie risposte alle domande:\n\n" +
+          "Prima domanda:\nTi piaccio?\nLa tua risposta: \"" + answers[0] + "\"\n" +
+          "Seconda domanda:\nQuanto mi ami?\nLa tua risposta: \"" + answers[1] + "\"\n" +
+          "Terza domanda:\nVuoi essere il mio San Valentino?\nLa tua risposta: \"" + answers[2] + "\"\n\n" +
+          "Resto a disposizione per eventuali chiarimenti e non vedo l'ora di celebrare insieme questo San Valentino. 🎉\n" +
+          "Con cordiali saluti,\n" +
+          "Il Suo San Valentino.\n" +
+          "[AGGIUNGI QUI LA TUA FIRMA PRIMA DI INVIARE]"
+        );
+
+
+        window.open(
+          `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${subject}&body=${body}`,
+          "_blank"
+        );
+      });
+
+      form.appendChild(button);
+
     }
   });
 
-      /* Add event listener for button clicks
-      button.addEventListener("click", async (e) => {
-        e.preventDefault();
-        // Handle button actions here (e.g., show next question, update love meter, etc.)
-        console.log(`Button clicked: ${btn.text}`);
-        
-        // For demonstration, let's just move to the next question on any button click
-        const nextIndex = index + 1;
-        if (nextIndex < config.questions.length) {
-          questionElement.textContent = config.questions[nextIndex].text;
-          form.innerHTML = "";
-          config.questions[nextIndex].buttons.forEach((nextBtn) => {
-            const nextButton = document.createElement("button");
-            nextButton.type = nextBtn.type === "submit" ? "submit" : "button";
-            nextButton.textContent = nextBtn.text;
-            nextButton.className = "btn";
-            form.appendChild(nextButton);
-            
-            // Add event listener for next buttons as well
-            nextButton.addEventListener("click", (e) => {
-              e.preventDefault();
-              console.log(`Button clicked: ${nextBtn.text}`);
-              // Handle next button actions here
-            });
-          });
-        } else {
-          // No more questions, show celebration or final message
-          questionElement.textContent = config.celebration.title;
-          form.innerHTML = `<p>${config.celebration.message}</p>`;
-          // Optionally, trigger a celebration animation here
-        }
-      });
-      */
 });
 
 
 
-
-
-function initFallingEmojis() {
+function initFallingEmojis(emojis) {
   const container = document.getElementsByClassName("emoji-container")[0];
-
-  const emojis = (config && config.floatingEmojis && config.floatingEmojis.emojis);
 
   const spawnRate = 150; // ms between spawns
   const maxConcurrent = 60;
   let active = 0;
 
-  const styles = ["fall-center", "fall-left", "fall-right", "fall-spiral"];
+  const styles = ["fall-center-left", "fall-center-right", "fall-left", "fall-right", "fall-spiral"];
 
   const spawn = () => {
     if (active > maxConcurrent) return;
@@ -238,10 +264,13 @@ function initFallingEmojis() {
 
 function renderQuestion(form, currentQst) {
   const qst = config.questions[currentQst];
-
+  
+  let buttonsContainer = document.createElement("div");
   let qstElem = document.createElement("h3");
   qstElem.id = "question";
   qstElem.textContent = qst.text;
+  qstElem.style.color = qst.textQuestionColor;
+  qstElem.style.fontSize = qst.textQuestionSize;
 
   form.innerHTML = ""; // clear buttons
 
@@ -249,23 +278,68 @@ function renderQuestion(form, currentQst) {
     if (child.id !== "question") child.remove();
   });
   form.appendChild(qstElem);
-
+  
 
   qst.buttons.forEach(btn => {
       if (btn.type === "submit") {
         const button = document.createElement("button");
         button.type = "submit";
         button.textContent = btn.text;
+        button.style.backgroundColor = config.colors.buttonBackground;
         button.className = "btn";
-        form.appendChild(button);
+        buttonsContainer.appendChild(button);
       } else {
         const input = document.createElement("input");
         input.type = btn.type;
+        if (btn.type === "range") input.className = "range-input";
         input.value = btn.text;
-        form.appendChild(input);
+        if (btn.min !== undefined) input.min = btn.min;
+        if (btn.max !== undefined) input.max = btn.max;
+        if (btn.step !== undefined) input.step = btn.step;
+        if (btn.min !== undefined) {
+          input.value = btn.min;
+
+          const value = document.createElement("p");
+          value.textContent = input.value;
+          value.style.color = config.textQuestionColor;
+          value.id = "range-value";
+          value.style.transition = "transform 0.2s";
+          buttonsContainer.appendChild(value);
+
+          input.addEventListener("input", async (event) => {
+            if (Number(event.target.value) < Number(input.max)) {
+              console.log(`Range input: ${event.target.value} < ${input.max}`);
+              value.textContent = event.target.value;
+              value.className = "";
+            } else {
+              console.log(`Range input: ${event.target.value} >= ${input.max}`);
+              value.textContent = "∞ ❤️";
+              value.className = "maxed";
+              return;
+            }
+            const t = event.target.value / input.max;
+
+            const maxScale = 1 + t * 0.8;
+            const minScale = 1 - t * 0.2;
+
+            for (let i = 0; i < 3; i++) {
+              value.style.transform = `scale(${maxScale})`;
+              await wait(150);
+
+              value.style.transform = `scale(${minScale})`;
+              await wait(150);
+
+              value.style.transform = "scale(1)";
+              await wait(150);
+            }
+          });
+        }
+        buttonsContainer.appendChild(input);
       }
+
+
     
     console.log(`Rendered button: ${btn.text} (type: ${btn.type})`);
   });
-
+  form.appendChild(buttonsContainer);
 }
